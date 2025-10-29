@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    container_name: chatbot_postgres
+    environment:
+      - POSTGRES_DB=chatbot
+      - POSTGRES_USER=chatbot_user
+      - POSTGRES_PASSWORD=chatbot_password
+    # SECURITY: Remove public port exposure - only accessible within Docker network
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    # Add basic security configurations without SSL
+    command: >
+      postgres
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_hostname=on
+      -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+
+  api:
+    build: .
+    container_name: chatbot_api
+    env_file:
+      - .env
+    environment:
+      - DB_URL=postgresql://chatbot_user:chatbot_password@postgres:5432/chatbot
+      - HF_HOME=/root/.cache/huggingface
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface
+      - SENTENCE_TRANSFORMERS_HOME=/root/.cache/torch/sentence_transformers
+      - FASTEMBED_CACHE_PATH=/root/.cache/fastembed
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/uploads:/app/app/uploads
+      - ./app/chroma_db:/app/app/chroma_db
+      - ./app/static/avatars:/app/static/avatars
+      # Persist model caches between runs/rebuilds
+      - ./.cache/huggingface:/root/.cache/huggingface
+      - ./.cache/torch:/root/.cache/torch
+      - ./.cache/fastembed:/root/.cache/fastembed
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

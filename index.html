@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="chatbot-widget"></div>
+    <!-- Load the widget JS with dynamic cache-busting -->
+    <script>
+        (function() {
+            const timestamp = new Date().getTime();
+            const script = document.createElement('script');
+            script.src = `https://chatbot.dipietroassociates.com/api/static/chatbot-widget.v2.js?v=${timestamp}`;
+            script.setAttribute('data-api-base', 'https://chatbot.dipietroassociates.com/api/');
+            script.defer = true;
+            script.onload = function() {
+                if (window.createChatbotWidget) {
+                    window.createChatbotWidget({ 
+                        apiBase: 'https://chatbot.dipietroassociates.com/api/' 
+                    });
+                }
+            };
+            document.body.appendChild(script);
+        })();
+    </script>
+</body>
+</html>
